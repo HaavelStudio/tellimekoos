@@ -8,9 +8,59 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(uuid())
-  clerkId   String   @unique
-  email     String   @unique
+  id           String        @id @default(uuid())
+  clerkId      String        @unique
+  email        String        @unique
+  role         String        @default("buyer") // "buyer" or "seller"
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  reservations Reservation[]
+  orders       Order[]
+}
+
+model Company {
+  id        String   @id              // Use the Clerk user id as the primary key
+  name      String
+  email     String   @unique           // We'll use the local user's email here
+  verified  Boolean  @default(false)   // Only verified companies can list products
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  products  Product[]
+}
+
+model Product {
+  id           String   @id @default(uuid())
+  name         String
+  slug         String   @unique // ✅ Now it's required
+  description  String
+  price        Float
+  currentPrice Float
+  inventory    Int
+  maxDiscount  Float
+  discountStep Float
+  leadCount    Int       @default(0)
+  companyId    String
+  company      Company   @relation(fields: [companyId], references: [id])
+  createdAt    DateTime  @default(now())
+  reservations Reservation[]
+  orders       Order[]
+}
+
+model Reservation {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  productId String
+  product   Product  @relation(fields: [productId], references: [id])
+  createdAt DateTime @default(now())
+}
+
+model Order {
+  id         String   @id @default(uuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  productId  String
+  product    Product  @relation(fields: [productId], references: [id])
+  quantity   Int
+  totalPrice Float
+  createdAt  DateTime @default(now())
 }
